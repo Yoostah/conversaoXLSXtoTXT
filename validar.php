@@ -12,7 +12,7 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 	?>
 	<tr>
 	<td valign="top">
-		<h1 class="page-header" style="margin: 20px 0 20px !important">ABA - <?php echo $aba ?></h1>
+		<h1 class="page-header" style="margin: 20px 0 20px !important">ABA - <?php echo $xlsx->sheetName($aba-1) ?></h1>
 			<table class= "table table-bordered" id="<?php echo 'planilha'.$aba ?>">
 				<tr class="info">
 					<th>Nº PC</th>
@@ -29,7 +29,7 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 	$erros_planilha = 0;
 	$abax = $aba - 1;
 	$linha = 1;
-	$exp = '';
+	$exp = 'TipoPC;Trecho;NúmeroPC;Nome;HorárioIdeal;DistânciaIdeal;Observação;'."\r\n";
 	foreach ( $xlsx->rows( $abax ) as $r ) {
 		$txt = array();
 
@@ -84,13 +84,15 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 						}
 						break;
 
-					case '3': //TEMPO						
-						if(is_numeric($r[ $i ])){
-							echo '<td>' .  $r[ $i ] . '</td>';
-							$txt['hora'] = trim($r[ $i ]);
+					case '3': //TEMPO
+						if( !empty($r[ $i ]) ){
+							$tempo = explode(' ', $r[ $i ]);
+							echo '<td>' .  $tempo[1] . '</td>';
+							$fmt_hora = explode(':',trim($tempo[1]));
+							$txt['hora'] = intval($fmt_hora[0]).','.$fmt_hora[1].$fmt_hora[2].'00';
 						}
 						else{
-							echo '<td class="danger">' . ( ( ! empty( $r[ $i ] ) ) ? trim($r[ $i ]) : '&nbsp;' ) . '</td>';
+							echo '<td class="danger">' . $r[ $i ] . '</td>';
 							$erros_planilha++;
 							$erro_linha++;
 						}
@@ -140,12 +142,12 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 	
 	if ($erros_planilha == 0){
 
-		$myfile = fopen("./generated/aba_".$aba.".txt", "w") or die("Unable to open file!");
-		fwrite($myfile, $exp);
+		$myfile = fopen("./generated/aba_".trim($xlsx->sheetName($aba-1)).".txt", "w") or die("Unable to open file!");
+		fwrite($myfile, mb_convert_encoding($exp, "ISO-8859-1", mb_detect_encoding($exp, "UTF-8, ISO-8859-1, ISO-8859-15", true)));
 		fclose($myfile);
 		?>
 		<tr><td colspan="6"><label>NENHUM ERRO ENCONTRADO</label></td>
-		<td><input type="button" value="Exportar ABA para TXT" class="btn btn-danger" style="padding: 6px 20px" onclick="location.href='download.php?aba=<?php echo $aba ?>'"></td>
+		<td><input type="button" value="Exportar ABA para TXT" class="btn btn-danger" style="padding: 6px 20px" onclick="location.href='download.php?aba=<?php echo trim($xlsx->sheetName($aba-1)) ?>'"></td>
 		<?php
 	}else{
 		echo '<tr><td colspan="6"><label>TOTAL DE ERROS ENCONTRADOS: '.$erros_planilha.'</label></td>';
