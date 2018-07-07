@@ -8,8 +8,7 @@ require_once __DIR__ . '/simplexlsx.class.php';
 
 if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 
-
-	for ($aba = 1; $aba <= $abas; $aba++){
+	for ($aba = 1; $aba <= $xlsx->sheetsCount(); $aba++){
 	?>
 	<tr>
 	<td valign="top">
@@ -30,8 +29,10 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 	$erros_planilha = 0;
 	$abax = $aba - 1;
 	$linha = 1;
-	$txt = '';
-	foreach ( $xlsx->rows( $abax ) as $r ) {		
+	$exp = '';
+	foreach ( $xlsx->rows( $abax ) as $r ) {
+		$txt = array();
+
 		$erro_linha = 0;
 		echo '<tr>';
 		for ( $i = 0; $i < $num_cols; $i ++ ) {
@@ -46,7 +47,8 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 					case '0': //Nº DO PC
 						if (is_int($r[ $i ])){
 							echo '<td>' . trim($r[ $i ]) . '</td>';
-							$txt .= $r[ $i ].';';
+							$txt['numero'] = sprintf("%02d", trim($r[ $i ]));
+							$txt['descricao'] = 'PC'.sprintf("%02d", trim($r[ $i ])).'-';
 						}else{
 							echo '<td class="danger">' . trim($r[ $i ]) . '</td>';
 							$erros_planilha++;
@@ -57,7 +59,8 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 					case '1': //TRECHO
 						if (is_int($r[ $i ])){
 							echo '<td>' . trim($r[ $i ]) . '</td>';
-							$txt .= $r[ $i ].';';
+							$txt['trecho'] = sprintf("%02d", trim($r[ $i ]));
+							$txt['obs'] = 'T'.trim($r[ $i ]);
 						}else{
 							echo '<td class="danger">' . trim($r[ $i ]) . '</td>';
 							$erros_planilha++;
@@ -68,10 +71,12 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 					case '2': //METRAGEM
 						if (is_int($r[ $i ])){
 							echo '<td>' . trim($r[ $i ]) . '</td>';
-							$txt .= $r[ $i ].';';
+							$txt['metragem'] = trim($r[ $i ]);
+							$txt['obs'] .= '-'.trim($r[ $i ]).'M';
 						}elseif(trim($r[ $i ]) == '?'){ //Trecho Omitido por ser PC DE PUNIÇÃO
 							echo '<td>' . trim($r[ $i ]) . '</td>';
-							$txt .= $r[ $i ].';';
+							$txt['metragem'] = 0;
+							$txt['obs'] .= '-'.'PUNIÇÃO';
 						}else{
 							echo '<td class="danger">' . trim($r[ $i ]) . '</td>';
 							$erros_planilha++;
@@ -82,7 +87,7 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 					case '3': //TEMPO						
 						if(is_numeric($r[ $i ])){
 							echo '<td>' .  $r[ $i ] . '</td>';
-							$txt .= $r[ $i ].';';
+							$txt['hora'] = trim($r[ $i ]);
 						}
 						else{
 							echo '<td class="danger">' . ( ( ! empty( $r[ $i ] ) ) ? trim($r[ $i ]) : '&nbsp;' ) . '</td>';
@@ -94,20 +99,20 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 					case '4': //TIPO
 						if (trim(strtoupper($r[ $i ])) == 'VIRTUAL'){
 							echo '<td>' . ( ( ! empty( $r[ $i ] ) ) ? trim($r[ $i ]) : '&nbsp;' ) . '</td>';
-							$txt .= $r[ $i ].';';	
+							$txt['tipo'] = 'D';	
 						}else{
 							echo '<td>' . ( ( ! empty( $r[ $i ] ) ) ? trim($r[ $i ]) : '&nbsp;' ) . '</td>';
-							$txt .= $r[ $i ].';';
+							$txt['tipo'] = 'H';
 						}
 						break;	
 
 					case '5': //DESC
 						if (strlen(trim($r[ $i ])) > $max_size){
 							echo '<td class="warning">' . trim(substr($r[ $i ],0,$max_size)) . '</td>';
-							$txt .= $r[ $i ].';'."\r\n";	
+							$txt['descricao'] .= trim(substr($r[ $i ],0,$max_size));	
 						}else{
 							echo '<td>' . trim($r[ $i ]) . '</td>';
-							$txt .= $r[ $i ].';'."\r\n";
+							$txt['descricao'] .= trim($r[ $i ]);
 							
 						}
 						
@@ -118,33 +123,34 @@ if ( $xlsx = SimpleXLSX::parse( $_FILES['file']['tmp_name'] ) ) {
 						break;
 				}
 
-			
 
 			
 		}
+
 		if ($erro_linha != 0){
 					echo '<td class="erro">ERRO LINHA ['.$linha.']</td>';
 				}else{
 					echo '<td class="ok">OK</td>';
 				}
 		echo '</tr>';
+		$exp .= $txt['tipo'].';'.$txt['trecho'].';'.$txt['numero'].';'.$txt['descricao'].';'.$txt['hora'].';'.$txt['metragem'].';'.$txt['obs'].';'."\r\n";
 		$linha++;
 	}
 	
 	
-			if ($erros_planilha == 0){
+	if ($erros_planilha == 0){
 
-				$myfile = fopen("./generated/aba_".$aba.".txt", "w") or die("Unable to open file!");
-				fwrite($myfile, $txt);
-				fclose($myfile);
-				?>
-				<tr><td colspan="6"><label>NENHUM ERRO ENCONTRADO</label></td>
-				<td><input type="button" value="Exportar ABA para TXT" class="btn btn-danger" style="padding: 6px 20px" onclick="location.href='download.php?aba=<?php echo $aba ?>'"></td>
-				<?php
-			}else{
-				echo '<tr><td colspan="6"><label>TOTAL DE ERROS ENCONTRADOS: '.$erros_planilha.'</label></td>';
-				echo '<td><label style="color:red"><= CORRIJA OS ERROS PARA EXPORTAR PARA TXT</label></td>';
-			}
+		$myfile = fopen("./generated/aba_".$aba.".txt", "w") or die("Unable to open file!");
+		fwrite($myfile, $exp);
+		fclose($myfile);
+		?>
+		<tr><td colspan="6"><label>NENHUM ERRO ENCONTRADO</label></td>
+		<td><input type="button" value="Exportar ABA para TXT" class="btn btn-danger" style="padding: 6px 20px" onclick="location.href='download.php?aba=<?php echo $aba ?>'"></td>
+		<?php
+	}else{
+		echo '<tr><td colspan="6"><label>TOTAL DE ERROS ENCONTRADOS: '.$erros_planilha.'</label></td>';
+		echo '<td><label style="color:red"><= CORRIJA OS ERROS PARA EXPORTAR PARA TXT</label></td>';
+	}
 	
 
 	echo '</tr></table>';

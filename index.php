@@ -10,7 +10,6 @@
 		<script type="text/javascript" src="js/bootstrap.min.js"></script>
 		<script type="text/javascript">
 		function reset(){
-			//document.getElementById('clear').value = "1";
 			location.reload();
 		}
 
@@ -34,8 +33,10 @@
 				<li> <label style="color: red">REMOVER FORMATAÇÃO DO ARQUIVO</label></li>
 				<li> <label style="color: red">SE FOR PC DE PUNIÇÃO, NO CAMPO METRAGEM O VALOR DEVERÁ SER PREENCHIDO COM ?</label></li>
 				<li> <label style="color: red">SE FOR PC DE PUNIÇÃO, NO CAMPO TEMPO DEVERÁ SER PREENCHIDO</label></li>
-			</ul>			
-		</div> 			   
+			</ul>
+							
+		   </div>
+		    			   
 		</div>
 		
 		<div class='container'>
@@ -45,16 +46,14 @@
 		//print_r($_FILES['file']);
 		if (isset($_FILES['file']) && $_FILES['file']['size'] > 0) {			
 				//Seta o tamanho máximo do campo descrição
-				$max_size = 50;
+				$max_size = 45;
 
-				//Seta a quantidade de abas da planilha
-				$abas = 2;
 				include 'validar.php';
 			
 		}else{
 			?>
 			<form method="post" enctype="multipart/form-data">
-			  <div class="form-group">
+			  <div class="form-group">		
 			  	<p class="lead">Carregue a Planilha abaixo: </p>
 			    <label for="file">Somente arquivos no formato *.XLSX</label>
 			    <input type="file" class="form-control-file" id="file" name="file">
@@ -68,4 +67,5 @@
 
 		</div>
 	</body>
+
 </html>
