@@ -6,7 +6,7 @@
 		}
 		</style>
 		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
 		<script type="text/javascript" src="js/bootstrap.min.js"></script>
 		<script type="text/javascript">
 		function reset(){
@@ -32,7 +32,7 @@
 			<ul style="list-style: square outside">
 				<li> <label style="color: red">REMOVER FORMATAÇÃO DO ARQUIVO</label></li>
 				<li> <label style="color: red">SE FOR PC DE PUNIÇÃO, NO CAMPO METRAGEM O VALOR DEVERÁ SER PREENCHIDO COM ?</label></li>
-				<li> <label style="color: red">SE FOR PC DE PUNIÇÃO, NO CAMPO TEMPO DEVERÁ SER PREENCHIDO</label></li>
+				<li> <label style="color: red">SE FOR PC DE PUNIÇÃO, O CAMPO TEMPO DEVERÁ SER PREENCHIDO</label></li>
 			</ul>
 							
 		   </div>
